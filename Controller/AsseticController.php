@@ -14,6 +14,7 @@ namespace Symfony\Bundle\AsseticBundle\Controller;
 use Assetic\Asset\AssetCache;
 use Assetic\Asset\AssetInterface;
 use Assetic\Cache\CacheInterface;
+use Assetic\Factory\AssetFactory;
 use Assetic\Factory\LazyAssetManager;
 use Assetic\ValueSupplierInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -35,10 +36,11 @@ class AsseticController
     protected $profiler;
     protected $valueSupplier;
 
-    public function __construct(Request $request, LazyAssetManager $am, CacheInterface $cache, $enableProfiler = false, Profiler $profiler = null)
+    public function __construct(Request $request, LazyAssetManager $am, AssetFactory $factory, CacheInterface $cache, $enableProfiler = false, Profiler $profiler = null)
     {
         $this->request = $request;
         $this->am = $am;
+        $this->factory = $factory;
         $this->cache = $cache;
         $this->enableProfiler = (boolean) $enableProfiler;
         $this->profiler = $profiler;
@@ -105,7 +107,7 @@ class AsseticController
             $asset->setValues(array_intersect_key($this->valueSupplier->getValues(), array_flip($vars)));
         }
 
-        return new AssetCache($asset, $this->cache);
+        return $this->factory->createAssetCache($asset, $this->cache, $this->am);
     }
 
     private function findAssetLeaf(\Traversable $asset, $pos)
